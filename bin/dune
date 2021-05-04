@@ -1,4 +1,4 @@
 (executable
  (public_name kindle_highlights)
  (name main)
- (libraries kindle_highlights stdio base))
+ (libraries parser stdio base))

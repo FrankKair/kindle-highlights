@@ -1,2 +1,3 @@
 (library
- (name kindle_highlights))
+ (name parser)
+ (libraries base))
