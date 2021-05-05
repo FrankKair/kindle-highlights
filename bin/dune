@@ -1,5 +1,4 @@
 (executable
  (public_name kindle_highlights)
  (name main)
- (libraries parser stdio base core)
- (preprocess (pps ppx_jane)))
+ (libraries parser stdio base core))

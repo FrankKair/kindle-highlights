@@ -1,27 +1,33 @@
 open Core
 open Parser
 
-let load_highlights filepath =
-  In_channel.read_lines filepath
-
-let print_books filepath =
-  let qs = Quotes.build (load_highlights filepath) in
-  List.iter ~f:(printf "%s\n") (Hashtbl.keys qs);
-
-let prompt_for_book book =
-  printf "%s\n" book;
+let prompt_for_book available_books =
+  List.iter ~f:(printf "%s\n") available_books;
+  print_endline "\nEnter the name of the book:";
   match In_channel.input_line In_channel.stdin with
-  | None -> failwith "No value entered. Aborting."
+  | None -> print_endline "No value entered. Aborting."; exit 0;
+  | Some "" -> print_endline "No value entered. Aborting."; exit 0;
   | Some book -> book
+
+let print_quotes qs book =
+  Array.iter ~f:(printf "\n> %s\n") (Hashtbl.find_exn qs book)
 
 let command =
   Command.basic
     ~summary:"Reads My Clippings file and parses the highlights"
-    ~readme:(fun () -> "More detailed info here")
-    (Command.Param.(
-       map (anon ("filepath" %: string))
-       ~f:(fun filepath ->
-         (fun () -> print_books filepath))))
+    ~readme:(fun () -> "More detailed information")
+    Command.Param.(
+      map (both
+            (anon ("filepath" %: string))
+            (anon (maybe ("book" %: string))))
+       ~f:(fun (filepath, book) ->
+         (fun () ->
+           let qs = Quotes.build (In_channel.read_lines filepath) in
+           let available_books = Hashtbl.keys qs in
+           let book = match book with
+             | Some b -> b
+             | None -> (prompt_for_book available_books) in
+           (print_quotes qs book))))
 
-let () = 
+let () =
   Command.run ~version:"1.0" ~build_info:"test" command
