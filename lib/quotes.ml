@@ -9,8 +9,12 @@ let build input_lines =
 
   while !index < size && !loop do
     if !index > size - 6 then loop := false;
-
-    let title = String.strip lines.(!index) in
+    let title =
+      let t = String.strip lines.(!index) in
+      String.substr_replace_first
+        ~pattern:"\u{feff}"
+        ~with_:"" t
+    in
     let contents = String.strip lines.(!index + 3) in
 
     Hashtbl.find_and_call quotes title

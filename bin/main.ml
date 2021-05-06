@@ -1,13 +1,6 @@
 open Core
 open Parser
-
-let prompt_for_book available_books =
-  List.iter ~f:(printf "%s\n") available_books;
-  print_endline "\nEnter the name of the book:";
-  match In_channel.input_line In_channel.stdin with
-  | None -> print_endline "No value entered. Aborting."; exit 0;
-  | Some "" -> print_endline "No value entered. Aborting."; exit 0;
-  | Some book -> book
+open Lwt
 
 let print_quotes qs book =
   Array.iter ~f:(printf "\n> %s\n") (Hashtbl.find_exn qs book)
@@ -18,16 +11,20 @@ let command =
     ~readme:(fun () -> "More detailed information")
     Command.Param.(
       map (both
-            (anon ("filepath" %: string))
-            (anon (maybe ("book" %: string))))
-       ~f:(fun (filepath, book) ->
-         (fun () ->
-           let qs = Quotes.build (In_channel.read_lines filepath) in
-           let available_books = Hashtbl.keys qs in
-           let book = match book with
-             | Some b -> b
-             | None -> (prompt_for_book available_books) in
-           (print_quotes qs book))))
+             (anon ("filepath" %: string))
+             (anon (maybe ("book" %: string))))
+        ~f:(fun (filepath, book) ->
+            (fun () ->
+               let qs = Quotes.build (In_channel.read_lines filepath) in
+               let available_books = Hashtbl.keys qs in
+               match book with
+               | Some b -> (print_quotes qs b);
+               | None ->
+                 let selected_book =
+                   Inquire.select "Select a book" ~options:available_books
+                   >>= fun b -> (print_quotes qs b); Lwt_io.printf "" in
+                 Lwt_main.run selected_book;
+            )))
 
 let () =
   Command.run ~version:"1.0" ~build_info:"test" command
