@@ -1,9 +1,9 @@
 open Core
-open Parser
 open Lwt
+open Kindle
 
-let print_quotes qs book =
-  Array.iter ~f:(printf "\n> %s\n") (Hashtbl.find_exn qs book)
+let print_quotes qs =
+  List.iter ~f:(printf "\n> %s\n") qs
 
 let command =
   Command.basic
@@ -15,14 +15,16 @@ let command =
              (anon (maybe ("book" %: string))))
         ~f:(fun (filepath, book) ->
             (fun () ->
-               let qs = Quotes.build (In_channel.read_lines filepath) in
-               let available_books = Hashtbl.keys qs in
+               let l = Library.build (In_channel.read_lines filepath) in
                match book with
-               | Some b -> (print_quotes qs b);
+               | Some b -> (print_quotes (Library.quotes l b));
                | None ->
                  let selected_book =
-                   Inquire.select "Select a book" ~options:available_books
-                   >>= fun b -> (print_quotes qs b); Lwt_io.printf "" in
+                   Inquire.select "Select a book" ~options:(Library.books l)
+                   >>= fun b ->
+                   (print_quotes (Library.quotes l b));
+                   Lwt_io.printf ""
+                 in
                  Lwt_main.run selected_book;
             )))
 

@@ -1,4 +1,4 @@
 (executable
  (public_name kindle_highlights)
  (name main)
- (libraries parser stdio core inquire))
+ (libraries stdio core inquire kindle))
