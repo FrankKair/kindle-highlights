@@ -29,4 +29,4 @@ let command =
             )))
 
 let () =
-  Command.run ~version:"1.0" ~build_info:"test" command
+  Command.run ~version:"0.0.1" ~build_info:"First version" command
