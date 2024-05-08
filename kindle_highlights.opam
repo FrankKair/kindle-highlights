@@ -7,7 +7,6 @@ depends: [
   "stdio" {>= "v0.14.0"}
   "core" {>= "v0.14.1"}
   "inquire" {>= "v0.2.1"}
-  "lwt" {>= "5.4.1"}
   "odoc" {with-doc}
 ]
 build: [
