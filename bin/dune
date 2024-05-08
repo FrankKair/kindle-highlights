@@ -1,5 +1,5 @@
 (executable
  (public_name kindle_highlights)
  (name main)
- (libraries stdio core inquire kindle)
+ (libraries stdio core core_unix.command_unix lwt lwt.unix inquire kindle)
  (preprocess (pps ppx_jane)))

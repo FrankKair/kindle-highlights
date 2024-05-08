@@ -2,7 +2,7 @@ module Library : sig
   type ('a, 'b) t
 
   (* Creates a library given a list of string (lines) *)
-  val build : string list -> ('a, 'b) t
+  val build_from : string list -> ('a, 'b) t
 
   (* List with book titles *)
   val books : ('a, 'b) t -> string list
