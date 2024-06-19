@@ -7,8 +7,8 @@ let command =
     Command.Let_syntax.(
       let%map_open filepath = anon ("filepath" %: string) in
       fun () ->
-        let path = In_channel.read_lines filepath in
-        let lib = Library.build_from(path) in
+        let lines = In_channel.read_lines filepath in
+        let lib = Library.build_from(lines) in
         Inquire.select "Select a book" ~options:(Library.books lib)
         |> fun book ->
             List.iter ~f:(printf "\n> %s\n") (Library.quotes lib book);

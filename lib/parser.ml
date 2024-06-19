@@ -20,8 +20,12 @@ let build_lib ~from:input_lines =
     let contents = String.strip lines.(!index + 3) in
 
     Hashtbl.find_and_call quotes title
-      ~if_found:(fun v -> Hashtbl.set quotes ~key:title ~data:(List.append v [contents]))
-      ~if_not_found:(fun _ -> Hashtbl.set quotes ~key:title ~data:[contents]);
+      ~if_found:(
+        fun v -> Hashtbl.set quotes ~key:title ~data:(List.append v [contents])
+      )
+      ~if_not_found:(
+        fun _ -> Hashtbl.set quotes ~key:title ~data:[contents]
+      );
 
     index := !index + 5;
   done;
