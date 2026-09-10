@@ -1,12 +1,14 @@
-module Library : sig
-  type ('a, 'b) t
+open Base
 
-  (* Creates a library given a list of string (lines) *)
-  val build_from : string list -> ('a, 'b) t
+module Parser : sig
+  val parse_block : string list -> (string * string) option
+  val build_lib : from:string list -> string list Map.M(String).t
+end
 
-  (* List with book titles *)
-  val books : ('a, 'b) t -> string list
+module Bookshelf : sig
+  type t
 
-  (* Quotes associated with a book title *)
-  val quotes : ('a, 'b) t -> string -> string list
+  val build_from : string list -> t
+  val books : t -> string list
+  val quotes : t -> string -> string list option
 end

@@ -1,2 +1,7 @@
 (test
- (name kindle_highlights))
+ (name kindle_highlights)
+ (libraries base alcotest kindle))
+
+(test
+ (name parser_test)
+ (libraries base alcotest kindle))

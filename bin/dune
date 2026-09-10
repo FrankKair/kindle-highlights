@@ -1,5 +1,6 @@
 (executable
  (public_name kindle_highlights)
  (name main)
- (libraries stdio core core_unix.command_unix inquire kindle)
- (preprocess (pps ppx_jane)))
+ (libraries core core_unix core_unix.command_unix kindle)
+ (preprocess
+  (pps ppx_jane)))
