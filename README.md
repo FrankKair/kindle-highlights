@@ -1,5 +1,7 @@
 ## kindle-highlights
 
+[![CI](https://github.com/FrankKair/kindle-highlights/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/FrankKair/kindle-highlights/actions/workflows/ci.yml)
+
 See your Kindle highlights in your terminal.
 
 ## Setup
