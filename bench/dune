@@ -1,0 +1,3 @@
+(executable
+ (name parser_bench)
+ (libraries kindle stdio unix))

@@ -5,3 +5,11 @@
 (test
  (name parser_test)
  (libraries base alcotest kindle))
+
+(test
+ (name parser_properties)
+ (libraries base alcotest kindle qcheck qcheck-alcotest))
+
+(test
+ (name parser_edge_cases)
+ (libraries base alcotest kindle))

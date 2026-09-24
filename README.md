@@ -8,7 +8,7 @@ See your Kindle highlights in your terminal.
 
 Requires [opam](https://opam.ocaml.org/doc/Install.html) and OCaml 5.0+.
 
-```bash
+```
 opam install . --deps-only --with-test
 ```
 
@@ -16,7 +16,7 @@ For the best experience, install [fzf](https://github.com/junegunn/fzf) for fuzz
 
 ## Usage
 
-```bash
+```
 dune exec kindle_highlights -- "My Clippings.txt"
 ```
 
@@ -33,3 +33,13 @@ The CLI will:
 - UTF-8 BOM at the beginning of the file is handled;
 - Duplicate highlights are deduplicated;
 - Malformed blocks are skipped.
+
+## Development
+
+```
+make test
+make benchmark
+make fmt
+```
+
+The parser design, input grammar, invariants, error policy, and performance notes are documented in [`PARSER_DESIGN.md`](PARSER_DESIGN.md). The test suite includes focused malformed-input cases and property-based tests over arbitrary line lists. The benchmark runs the parser repeatedly against a clippings file so parser changes can be compared on the same input.

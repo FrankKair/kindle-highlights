@@ -28,7 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          opam update
           opam install . --deps-only --with-test --yes
           opam install ocamlformat --yes
 

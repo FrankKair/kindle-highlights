@@ -23,4 +23,6 @@
   (core (>= v0.14.1))
   (core_unix (>= v0.14.0))
   (ppx_jane (>= v0.17.0))
-  (alcotest :with-test)))
+  (alcotest :with-test)
+  (qcheck :with-test)
+  (qcheck-alcotest :with-test)))
