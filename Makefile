@@ -5,7 +5,8 @@ watch: ## Rebuild on file changes
 	dune build --watch
 
 run: ## Run the project
-	dune exec kindle_highlights -- "My Clippings.txt"
+	@test -n "$(FILE)" || { echo "Usage: make run FILE=/path/to/clippings.txt" >&2; exit 2; }
+	dune exec kindle_highlights -- "$(FILE)"
 
 test: ## Run tests
 	dune runtest
@@ -14,7 +15,8 @@ test-verbose: ## Run tests (verbose)
 	dune runtest --force --verbose
 
 benchmark: ## Benchmark parsing a clippings file
-	dune exec bench/parser_bench.exe -- "My Clippings.txt"
+	@test -n "$(FILE)" || { echo "Usage: make benchmark FILE=/path/to/clippings.txt" >&2; exit 2; }
+	dune exec bench/parser_bench.exe -- "$(FILE)"
 
 fmt: ## Format source code
 	dune fmt

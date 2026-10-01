@@ -38,7 +38,7 @@ The CLI will:
 
 ```
 make test
-make benchmark
+make benchmark FILE=/path/to/clippings.txt
 make fmt
 ```
 

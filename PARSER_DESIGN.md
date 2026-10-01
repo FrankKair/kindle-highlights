@@ -46,10 +46,10 @@ If diagnostics are needed, a separate result-returning API could be added, rathe
 
 ## Performance 
 
-Parsing is linear in the number of input lines. Index construction is linear in the number of parsed entries plus the cost of stable de-duplication. The `benchmark` Make target provides a repeatable baseline using a real clippings file:
+Splitting blocks and parsing entries take time linear in the input size. For `h` parsed highlights, building the ordered title map and de-duplicating with ordered sets take `O(h log h)` time in the worst case, assuming bounded string comparison costs. The `benchmark` Make target provides a repeatable baseline using a clippings file:
 
 ```
-make benchmark
+make benchmark FILE=/path/to/clippings.txt
 ```
 
-The benchmakr is intentionally simple. It is for detecting accidental regressions, not for claiming a universal performance number across machines.
+The benchmark is intentionally simple. It is for detecting accidental regressions, not for claiming a universal performance number across machines.
