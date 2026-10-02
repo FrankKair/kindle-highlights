@@ -12,18 +12,45 @@ Requires [opam](https://opam.ocaml.org/doc/Install.html) and OCaml 5.0+.
 opam install . --deps-only --with-test
 ```
 
-For the best experience, install [fzf](https://github.com/junegunn/fzf) for fuzzy book selection. If `fzf` is not available, the CLI falls back to a numered list prompt.
+For the best experience, install [fzf](https://github.com/junegunn/fzf) for fuzzy book selection. If `fzf` is not available, the CLI falls back to a numbered list prompt.
 
 ## Usage
 
+Load highlights while the Kindle is connected:
+
 ```
-dune exec kindle_highlights -- "My Clippings.txt"
+dune exec kindle_highlights -- load "/path/to/My Clippings.txt"
 ```
 
-The CLI will:
-- Parse your clippings file;
-- Show a sorted list of books that contain highlights;
-- Print highlights for the selected book.
+Browse them later without the clippings file:
+
+```
+dune exec kindle_highlights
+```
+
+The `load` command replaces the saved library, including when the file has no
+highlights. Both commands show a sorted list of books and print highlights for
+the selected book. Without a saved library, the browse command explains how to
+load one.
+
+Saved highlights live at `$XDG_DATA_HOME/kindle-highlights/library.sexp` when
+`XDG_DATA_HOME` is set, or `~/.local/share/kindle-highlights/library.sexp`
+otherwise.
+
+## How it fits together
+
+```text
+load FILE:
+  clippings file -> Parser.parse_lines -> entries -> Store.save -> library.sexp
+                                           |
+                                           +-> Bookshelf.of_entries -> selector
+
+no arguments:
+  library.sexp -> Store.load -> entries -> Bookshelf.of_entries -> selector
+```
+
+The parser handles clipping syntax. The store saves and loads parsed entries.
+The bookshelf builds a title-to-quotes index for browsing.
 
 ## Notes
 
@@ -38,6 +65,8 @@ The CLI will:
 
 ```
 make test
+make load FILE="/path/to/My Clippings.txt"
+make run
 make benchmark FILE=/path/to/clippings.txt
 make fmt
 ```
