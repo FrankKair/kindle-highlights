@@ -64,6 +64,24 @@ let test_empty_input () =
   Alcotest.(check (list string))
     "no books from empty input" [] (Bookshelf.books lib)
 
+let test_of_entries_builds_bookshelf () =
+  let entries : Parser.entry list =
+    [
+      { title = "Book B"; contents = "First" };
+      { title = "Book A"; contents = "Other" };
+      { title = "Book B"; contents = "First" };
+      { title = "Book B"; contents = "Second" };
+    ]
+  in
+  let bookshelf = Bookshelf.of_entries entries in
+  Alcotest.(check (list string))
+    "books sorted" [ "Book A"; "Book B" ]
+    (Bookshelf.books bookshelf);
+  Alcotest.(check (option (list string)))
+    "quotes deduplicated in order"
+    (Some [ "First"; "Second" ])
+    (Bookshelf.quotes bookshelf "Book B")
+
 let () =
   Alcotest.run "kindle_highlights"
     [
@@ -75,5 +93,7 @@ let () =
           Alcotest.test_case "missing book returns none" `Quick
             test_missing_book_returns_none;
           Alcotest.test_case "empty input" `Quick test_empty_input;
+          Alcotest.test_case "build from entries" `Quick
+            test_of_entries_builds_bookshelf;
         ] );
     ]

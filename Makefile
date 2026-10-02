@@ -4,9 +4,12 @@ build: ## Build the project
 watch: ## Rebuild on file changes
 	dune build --watch
 
-run: ## Run the project
-	@test -n "$(FILE)" || { echo "Usage: make run FILE=/path/to/clippings.txt" >&2; exit 2; }
-	dune exec kindle_highlights -- "$(FILE)"
+run: ## Browse saved highlights
+	dune exec kindle_highlights
+
+load: ## Replace saved highlights from FILE and browse
+	@test -n "$(FILE)" || { echo "Usage: make load FILE=/path/to/clippings.txt" >&2; exit 2; }
+	dune exec kindle_highlights -- load "$(FILE)"
 
 test: ## Run tests
 	dune runtest
@@ -29,5 +32,5 @@ help: ## Show this help
 		awk -F ':.*## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
 
-.PHONY: build watch run test test-verbose benchmark fmt clean help
+.PHONY: build watch run load test test-verbose benchmark fmt clean help
 .DEFAULT_GOAL := help

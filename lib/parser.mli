@@ -10,6 +10,9 @@ val parse_block : string list -> (string * string) option
 val parse_lines : string list -> entry list
 (** Parse all highlight entries in a list of clippings lines. *)
 
+val index_entries : entry list -> string list Map.M(String).t
+(** Build a title-to-highlights index from parsed entries, preserving input
+    order while removing duplicate highlight text for each title. *)
+
 val build_lib : from:string list -> string list Map.M(String).t
-(** Build a title-to-highlights index, preserving input order while removing
-    duplicate highlight text for each title. *)
+(** Parse clippings lines and build a title-to-highlights index. *)

@@ -66,8 +66,10 @@ let stable_dedup_strings xs =
       if Set.mem seen x then (seen, acc) else (Set.add seen x, x :: acc))
   |> snd |> List.rev
 
-let build_lib ~from:input_lines =
-  parse_lines input_lines
+let index_entries entries =
+  entries
   |> List.map ~f:(fun { title; contents } -> (title, contents))
   |> Map.of_alist_multi (module String)
   |> Map.map ~f:stable_dedup_strings
+
+let build_lib ~from:input_lines = parse_lines input_lines |> index_entries

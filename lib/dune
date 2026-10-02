@@ -1,3 +1,5 @@
 (library
  (name kindle)
- (libraries base))
+ (libraries base core unix)
+ (preprocess
+  (pps ppx_jane)))
