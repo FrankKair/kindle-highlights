@@ -17,7 +17,7 @@ test: ## Run tests
 test-verbose: ## Run tests (verbose)
 	dune runtest --force --verbose
 
-benchmark: ## Benchmark parsing a clippings file
+benchmark: ## Benchmark parsing a clippings file
 	@test -n "$(FILE)" || { echo "Usage: make benchmark FILE=/path/to/clippings.txt" >&2; exit 2; }
 	dune exec bench/parser_bench.exe -- "$(FILE)"
 

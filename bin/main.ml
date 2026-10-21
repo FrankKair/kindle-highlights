@@ -3,12 +3,28 @@ open Kindle
 
 let print_quotes quotes = List.iter ~f:(printf "\n> %s\n") quotes
 
+let book_options bookshelf =
+  let counts =
+    Bookshelf.books bookshelf
+    |> List.map ~f:(fun book ->
+        let count =
+          Bookshelf.quotes bookshelf book
+          |> Option.value ~default:[] |> List.length
+        in
+        (book, count))
+  in
+  let width =
+    List.fold counts ~init:1 ~f:(fun width (_, count) ->
+        Int.max width (String.length (Int.to_string count)))
+  in
+  List.map counts ~f:(fun (book, count) ->
+      (sprintf "[%*d] %s" width count book, book))
+
 let show_bookshelf bookshelf =
-  let books = Bookshelf.books bookshelf in
-  match books with
+  match book_options bookshelf with
   | [] -> printf "No highlights found in the saved library.\n"
-  | _ -> (
-      match Selector.select ~prompt:"Select a book:" books with
+  | options -> (
+      match Selector.select ~prompt:"Select a book:" options with
       | None -> printf "No book selected.\n"
       | Some book -> (
           match Bookshelf.quotes bookshelf book with

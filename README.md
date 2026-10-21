@@ -30,7 +30,9 @@ dune exec kindle_highlights
 
 The `load` command replaces the saved library, including when the file has no
 highlights. Both commands show a sorted list of books and print highlights for
-the selected book. Without a saved library, the browse command explains how to
+the selected book. Each book has its unique highlight count displayed before
+its title, for example `[24] Piranesi (Susanna Clarke)`.
+Without a saved library, the browse command explains how to
 load one.
 
 Saved highlights live at `$XDG_DATA_HOME/kindle-highlights/library.sexp` when
@@ -62,6 +64,14 @@ The bookshelf builds a title-to-quotes index for browsing.
 - Malformed blocks are skipped.
 
 ## Development
+
+Use any opam switch with OCaml 5.0 or later. In your selected switch:
+
+```sh
+eval $(opam env)
+opam install . --deps-only --with-test
+opam install ocamlformat
+```
 
 ```
 make test

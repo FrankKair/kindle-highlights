@@ -29,5 +29,10 @@ let select_with_numbered_list ~prompt options =
           None)
 
 let select ~prompt options =
-  if fzf_available () then select_with_fzf ~prompt options
-  else select_with_numbered_list ~prompt options
+  let labels = List.map options ~f:fst in
+  let selected =
+    if fzf_available () then select_with_fzf ~prompt labels
+    else select_with_numbered_list ~prompt labels
+  in
+  Option.bind selected ~f:(fun label ->
+      List.Assoc.find options label ~equal:String.equal)
