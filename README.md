@@ -6,13 +6,13 @@ See your Kindle highlights in your terminal.
 
 ## Setup
 
-Requires [opam](https://opam.ocaml.org/doc/Install.html) and OCaml 5.0+.
+Requires [opam](https://opam.ocaml.org/doc/Install.html), OCaml 5.0+,
+[fzf](https://github.com/junegunn/fzf) for book selection, and `less` for reading
+highlights. Both `fzf` and `less` must be available on your `PATH`.
 
 ```
 opam install . --deps-only --with-test
 ```
-
-For the best experience, install [fzf](https://github.com/junegunn/fzf) for fuzzy book selection. If `fzf` is not available, the CLI falls back to a numbered list prompt.
 
 ## Usage
 
@@ -29,9 +29,16 @@ dune exec kindle_highlights
 ```
 
 The `load` command replaces the saved library, including when the file has no
-highlights. Both commands show a sorted list of books and print highlights for
-the selected book. Each book has its unique highlight count displayed before
-its title, for example `[24] Piranesi (Susanna Clarke)`.
+highlights. Both commands show a sorted list of books in `fzf`. Each book has its
+unique highlight count displayed before its title, for example
+`[24] Piranesi (Susanna Clarke)`.
+
+Select a book to read its highlights in `less`, with the book title as a heading.
+Use the arrow keys to scroll or `/` to search. Press `q` to return to the book
+selector and choose another book without restarting the program. Press `Esc` in
+the selector to exit quietly. Browsing requires `fzf`; there is no numbered-list
+fallback.
+
 Without a saved library, the browse command explains how to
 load one.
 
@@ -53,6 +60,9 @@ no arguments:
 
 The parser handles clipping syntax. The store saves and loads parsed entries.
 The bookshelf builds a title-to-quotes index for browsing.
+The selector uses `fzf` to choose a book; its highlights are written to a
+temporary file for `less`. The file is deleted when the pager exits, and book
+selection repeats until cancelled.
 
 ## Notes
 

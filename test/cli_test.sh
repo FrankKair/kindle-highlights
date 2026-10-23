@@ -8,14 +8,40 @@ trap 'rm -rf "$work"' EXIT
 mkdir "$work/bin"
 cat > "$work/bin/fzf" <<'EOF'
 #!/bin/sh
+set -eu
+count=0
+if [ -f "$FZF_TEST_STATE" ]; then
+  count=$(cat "$FZF_TEST_STATE")
+fi
+if [ "$count" -ge "${FZF_TEST_SELECTIONS:-1}" ]; then
+  cat > /dev/null
+  exit 130
+fi
+echo "$((count + 1))" > "$FZF_TEST_STATE"
 sed -n '1p'
 EOF
-chmod +x "$work/bin/fzf"
+cat > "$work/bin/less" <<'EOF'
+#!/bin/sh
+set -eu
+test "$1" = '-P'
+test "$2" = 'q to return | / to search'
+test "$3" = '--'
+printf '%s\n' "$4" >> "$PAGER_TEST_PATHS"
+cat "$4"
+EOF
+chmod +x "$work/bin/fzf" "$work/bin/less"
 
 export PATH="$work/bin:$PATH"
 export XDG_DATA_HOME="$work/data"
+export FZF_TEST_STATE="$work/selector-state"
+export PAGER_TEST_PATHS="$work/pager-paths"
 
-if "$exe" > "$work/missing.out" 2>&1; then
+run_cli () {
+  rm -f "$FZF_TEST_STATE" "$PAGER_TEST_PATHS"
+  "$exe" "$@"
+}
+
+if run_cli > "$work/missing.out" 2>&1; then
   echo "browsing without a saved library should fail" >&2
   exit 1
 fi
@@ -29,19 +55,37 @@ Quote One
 ==========
 EOF
 
-"$exe" load "$work/first.txt" > "$work/first.out"
+run_cli load "$work/first.txt" > "$work/first.out"
 grep -F "Loaded 1 highlights" "$work/first.out"
+grep -F -- "--- Book A ---" "$work/first.out"
 grep -F "Quote One" "$work/first.out"
 test -f "$XDG_DATA_HOME/kindle-highlights/library.sexp"
+while IFS= read -r path; do
+  test ! -e "$path"
+done < "$PAGER_TEST_PATHS"
 
 rm "$work/first.txt"
-"$exe" > "$work/browse.out"
+run_cli > "$work/browse.out"
 grep -F "Quote One" "$work/browse.out"
-if "$exe" load "$work/first.txt" > "$work/failed_load.out" 2>&1; then
+
+# Select twice in one process, then cancel the selector.
+export FZF_TEST_SELECTIONS=2
+run_cli > "$work/repeated.out"
+test "$(grep -c 'Quote One' "$work/repeated.out")" -eq 2
+unset FZF_TEST_SELECTIONS
+
+# Cancelling immediately should exit successfully without displaying quotes.
+export FZF_TEST_SELECTIONS=0
+run_cli > "$work/cancelled.out"
+test ! -s "$work/cancelled.out"
+test ! -e "$PAGER_TEST_PATHS"
+unset FZF_TEST_SELECTIONS
+
+if run_cli load "$work/first.txt" > "$work/failed_load.out" 2>&1; then
   echo "loading a missing file should fail" >&2
   exit 1
 fi
-"$exe" > "$work/after_failed_load.out"
+run_cli > "$work/after_failed_load.out"
 grep -F "Quote One" "$work/after_failed_load.out"
 
 cat > "$work/second.txt" <<'EOF'
@@ -52,8 +96,8 @@ Quote Two
 ==========
 EOF
 
-"$exe" load "$work/second.txt" > "$work/second.out"
-"$exe" > "$work/replaced.out"
+run_cli load "$work/second.txt" > "$work/second.out"
+run_cli > "$work/replaced.out"
 grep -F "Quote Two" "$work/replaced.out"
 if grep -F "Quote One" "$work/replaced.out"; then
   echo "replacement kept an old quote" >&2
@@ -61,6 +105,6 @@ if grep -F "Quote One" "$work/replaced.out"; then
 fi
 
 : > "$work/empty.txt"
-"$exe" load "$work/empty.txt" > "$work/empty.out"
-"$exe" > "$work/empty_browse.out"
+run_cli load "$work/empty.txt" > "$work/empty.out"
+run_cli > "$work/empty_browse.out"
 grep -F "No highlights found in the saved library" "$work/empty_browse.out"
