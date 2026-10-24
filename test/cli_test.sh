@@ -24,7 +24,7 @@ if [ "$count" -ge "${FZF_TEST_SELECTIONS:-1}" ]; then
   exit 130
 fi
 echo "$((count + 1))" > "$FZF_TEST_STATE"
-sed -n '1p'
+tee "$FZF_TEST_OPTIONS" | sed -n "${FZF_TEST_ROW:-1}p"
 EOF
 cat > "$work/bin/less" <<'EOF'
 #!/bin/sh
@@ -43,6 +43,7 @@ chmod +x "$work/bin/fzf" "$work/bin/less"
 export PATH="$work/bin:$PATH"
 export XDG_DATA_HOME="$work/data"
 export FZF_TEST_STATE="$work/selector-state"
+export FZF_TEST_OPTIONS="$work/selector-options"
 export PAGER_TEST_PATHS="$work/pager-paths"
 
 run_cli () {
@@ -156,6 +157,45 @@ run_cli load "$work/large.txt" > "$work/large.out"
 grep -F "Loaded 4000 highlights" "$work/large.out"
 grep -F -- "--- Book 0001 " "$work/large.out"
 grep -F "> Quote 1" "$work/large.out"
+check_selector_cleanup
+
+# Counts use unique highlights, align across digit widths, and retain book identity.
+# Write Book B first so the expected options also check title sorting.
+awk 'BEGIN {
+  for (i = 1; i <= 10; i++) {
+    printf "Book B\n- Your Highlight on page 1\n\nQuote B %d\n==========\n", i
+  }
+  printf "Book B\n- Your Highlight on page 1\n\nQuote B 1\n==========\n"
+  for (i = 1; i <= 2; i++) {
+    printf "Book A\n- Your Highlight on page 1\n\nQuote A %d\n==========\n", i
+  }
+}' > "$work/multiple.txt"
+
+export FZF_TEST_ROW=2
+run_cli load "$work/multiple.txt" > "$work/select_second.out"
+cat > "$work/expected-options" <<'EOF'
+[ 2] Book A
+[10] Book B
+EOF
+cmp "$work/expected-options" "$FZF_TEST_OPTIONS"
+grep -Fx -- "--- Book B ---" "$work/select_second.out"
+test "$(grep -c '^> Quote B ' "$work/select_second.out")" -eq 10
+test "$(grep -Fxc '> Quote B 1' "$work/select_second.out")" -eq 1
+if grep -F 'Quote A ' "$work/select_second.out"; then
+  echo "selecting Book B should not display Book A highlights" >&2
+  exit 1
+fi
+
+export FZF_TEST_ROW=1
+run_cli > "$work/select_first.out"
+unset FZF_TEST_ROW
+cmp "$work/expected-options" "$FZF_TEST_OPTIONS"
+grep -Fx -- "--- Book A ---" "$work/select_first.out"
+test "$(grep -c '^> Quote A ' "$work/select_first.out")" -eq 2
+if grep -F 'Quote B ' "$work/select_first.out"; then
+  echo "selecting Book A should not display Book B highlights" >&2
+  exit 1
+fi
 check_selector_cleanup
 
 : > "$work/empty.txt"
