@@ -6,6 +6,8 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
 mkdir "$work/bin"
+mkdir "$work/tmp"
+export TMPDIR="$work/tmp"
 cat > "$work/bin/fzf" <<'EOF'
 #!/bin/sh
 set -eu
@@ -48,6 +50,12 @@ run_cli () {
   "$exe" "$@"
 }
 
+check_selector_cleanup () {
+  for path in "$TMPDIR"/kindle-books-*; do
+    test ! -e "$path"
+  done
+}
+
 if run_cli > "$work/missing.out" 2>&1; then
   echo "browsing without a saved library should fail" >&2
   exit 1
@@ -67,6 +75,7 @@ grep -F "Loaded 1 highlights" "$work/first.out"
 grep -F -- "--- Book A ---" "$work/first.out"
 grep -F "Quote One" "$work/first.out"
 test -f "$XDG_DATA_HOME/kindle-highlights/library.sexp"
+check_selector_cleanup
 while IFS= read -r path; do
   test ! -e "$path"
 done < "$PAGER_TEST_PATHS"
@@ -86,6 +95,7 @@ export FZF_TEST_SELECTIONS=0
 run_cli > "$work/cancelled.out"
 test ! -s "$work/cancelled.out"
 test ! -e "$PAGER_TEST_PATHS"
+check_selector_cleanup
 unset FZF_TEST_SELECTIONS
 
 if run_cli load "$work/first.txt" > "$work/failed_load.out" 2>&1; then
@@ -120,6 +130,7 @@ fi
 unset FZF_TEST_EXIT_CODE
 
 grep -F "Book selection failed:" "$work/selector_failed.out"
+check_selector_cleanup
 
 # Pager failures should fail the command and still clean up the temporary file.
 export PAGER_TEST_EXIT_CODE=1
@@ -134,6 +145,18 @@ test -s "$PAGER_TEST_PATHS"
 while IFS= read -r path; do
   test ! -e "$path"
 done < "$PAGER_TEST_PATHS"
+
+# A large book list should reach fzf without hitting shell argument limits.
+awk 'BEGIN {
+  for (i = 1; i <= 4000; i++) {
+    printf "Book %04d %0100d\n- Your Highlight on page 1\n\nQuote %d\n==========\n", i, 0, i
+  }
+}' > "$work/large.txt"
+run_cli load "$work/large.txt" > "$work/large.out"
+grep -F "Loaded 4000 highlights" "$work/large.out"
+grep -F -- "--- Book 0001 " "$work/large.out"
+grep -F "> Quote 1" "$work/large.out"
+check_selector_cleanup
 
 : > "$work/empty.txt"
 run_cli load "$work/empty.txt" > "$work/empty.out"
