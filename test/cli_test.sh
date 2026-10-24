@@ -9,6 +9,10 @@ mkdir "$work/bin"
 cat > "$work/bin/fzf" <<'EOF'
 #!/bin/sh
 set -eu
+if [ -n "${FZF_TEST_EXIT_CODE:-}" ]; then
+  cat > /dev/null
+  exit "$FZF_TEST_EXIT_CODE"
+fi
 count=0
 if [ -f "$FZF_TEST_STATE" ]; then
   count=$(cat "$FZF_TEST_STATE")
@@ -27,6 +31,9 @@ test "$1" = '-P'
 test "$2" = 'q to return | / to search'
 test "$3" = '--'
 printf '%s\n' "$4" >> "$PAGER_TEST_PATHS"
+if [ -n "${PAGER_TEST_EXIT_CODE:-}" ]; then
+  exit "$PAGER_TEST_EXIT_CODE"
+fi
 cat "$4"
 EOF
 chmod +x "$work/bin/fzf" "$work/bin/less"
@@ -103,6 +110,30 @@ if grep -F "Quote One" "$work/replaced.out"; then
   echo "replacement kept an old quote" >&2
   exit 1
 fi
+
+# Selector failures should report an error and fail the command.
+export FZF_TEST_EXIT_CODE=2
+if run_cli > "$work/selector_failed.out" 2>&1; then
+  echo "a selector error should fail the command" >&2
+  exit 1
+fi
+unset FZF_TEST_EXIT_CODE
+
+grep -F "Book selection failed:" "$work/selector_failed.out"
+
+# Pager failures should fail the command and still clean up the temporary file.
+export PAGER_TEST_EXIT_CODE=1
+if run_cli > "$work/pager_failed.out" 2>&1; then
+  echo "a pager error should fail the command" >&2
+  exit 1
+fi
+unset PAGER_TEST_EXIT_CODE
+
+grep -F "Could not display highlights: less exited with code 1" "$work/pager_failed.out"
+test -s "$PAGER_TEST_PATHS"
+while IFS= read -r path; do
+  test ! -e "$path"
+done < "$PAGER_TEST_PATHS"
 
 : > "$work/empty.txt"
 run_cli load "$work/empty.txt" > "$work/empty.out"
